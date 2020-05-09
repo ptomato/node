@@ -1,0 +1,11 @@
+{
+  "name": "fetch-cancellation",
+  "version": "1.0.0",
+  "description": "Demo of using native AbortSignal with node-fetch",
+  "main": "fetch.js",
+  "author": "Philip Chimento <pchimento@igalia.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@ptomato/node-fetch": "file:///home/ptomato/workspace/node-fetch"
+  }
+}
