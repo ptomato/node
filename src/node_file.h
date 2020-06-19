@@ -85,6 +85,9 @@ class FSReqBase : public ReqWrap<uv_fs_t> {
   virtual void SetReturnValue(
       const v8::FunctionCallbackInfo<v8::Value>& args) = 0;
 
+  // JS-exposed method to cancel the UV request.
+  static void Cancel(const v8::FunctionCallbackInfo<v8::Value>& args);
+
   const char* syscall() const { return syscall_; }
   const char* data() const { return has_data_ ? *buffer_ : nullptr; }
   enum encoding encoding() const { return encoding_; }

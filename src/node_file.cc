@@ -130,6 +130,28 @@ FileHandleReadWrap::~FileHandleReadWrap() {}
 
 FSReqBase::~FSReqBase() {}
 
+void FSReqBase::Cancel(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  FSReqCallback* self;
+  ASSIGN_OR_RETURN_UNWRAP(&self, args.Holder());
+  self->ReqWrap::Cancel();
+
+  Local<Value> argv[] = {
+      FIXED_ONE_BYTE_STRING(self->env()->isolate(), "Operation was cancelled."),
+      FIXED_ONE_BYTE_STRING(self->env()->isolate(), "AbortError"),
+  };
+  Local<Value> exception;
+  Local<Function> domexception_ctor;
+  if (!GetDOMException(self->env()->context()).ToLocal(&domexception_ctor) ||
+      !domexception_ctor
+           ->NewInstance(self->env()->context(), arraysize(argv), argv)
+           .ToLocal(&exception)) {
+    return;
+  }
+
+  self->Reject(exception);
+  args.GetReturnValue().SetUndefined();
+}
+
 void FSReqBase::MemoryInfo(MemoryTracker* tracker) const {
   tracker->TrackField("continuation_data", continuation_data_);
 }
@@ -2455,6 +2477,7 @@ void Initialize(Local<Object> target,
   fst->InstanceTemplate()->SetInternalFieldCount(
       FSReqBase::kInternalFieldCount);
   fst->Inherit(AsyncWrap::GetConstructorTemplate(env));
+  env->SetProtoMethod(fst, "cancel", FSReqBase::Cancel);
   Local<String> wrapString =
       FIXED_ONE_BYTE_STRING(isolate, "FSReqCallback");
   fst->SetClassName(wrapString);
@@ -2478,6 +2501,7 @@ void Initialize(Local<Object> target,
   // Create Function Template for FSReqPromise
   Local<FunctionTemplate> fpt = FunctionTemplate::New(isolate);
   fpt->Inherit(AsyncWrap::GetConstructorTemplate(env));
+  env->SetProtoMethod(fpt, "cancel", FSReqBase::Cancel);
   Local<String> promiseString =
       FIXED_ONE_BYTE_STRING(isolate, "FSReqPromise");
   fpt->SetClassName(promiseString);
